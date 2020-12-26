@@ -1,3 +1,3 @@
 # HLS_TSP
 
-This is a repo cntaining  files of HLS final project for HLS university course.
+This is a repo cntaining files of the final project for HLS university course.
