@@ -2,12 +2,12 @@
 #include <cstdlib>
 #include <ctime>
 #include "ac_int.h";
-#include "ac_fixed.h";
 using namespace std;
 
 const int populationSize = 100;
 const int numberOfNodes = 100;
 const int length = 7;
+const int maxGenerations = 100;
 
 /*###################################################
 Some usefull links
@@ -43,7 +43,7 @@ bool geneRepeat(ac_int<length, false> gene, individual<length> chromosome) {
 void populationInit(ac_int<11, false> (&distances) [populationSize][numberOfNodes]) {
 	// This function
 	// input population array, distances array
-
+	ac_int<length, false> population[numberOfNodes];
 	for (int i = 0; i < populationSize; i++) {
 
 		for (int j = 0; j < numberOfNodes; j++) {
@@ -52,17 +52,19 @@ void populationInit(ac_int<11, false> (&distances) [populationSize][numberOfNode
 		}
 
 		// Fisher-Yates' shuffling
+		short k;
 		for (int l = 0; l < (numberOfNodes - 1); l++) {
 		
-			short k = min(k + 5 + 1, numberOfNodes);
+			k = min(l + 5 + 1, numberOfNodes);
 			ac_int<length, false> temp = population[i][l];
 			population[i][l] = population[i][k];
+			population[i][k] = temp;
 		}
 	}
 }
 
 // ----- To sort based on column in descending order -----
-void sortByColumn(ac_int<11, false>(&vector)[populationSize]) {
+void sortByColumn(ac_int<11, false>(&vector)[populationSize][2]) {
 	//This function
 
 	ac_int<11, false> tempScore;
@@ -83,7 +85,7 @@ void sortByColumn(ac_int<11, false>(&vector)[populationSize]) {
 }
 
 // ----- FITNESS -----
-void fitness(ac_int<11, false> (&scores)[populationSize], ac_int<11,false> distances[numberOfNodes][numberOfNodes], ac_int<length,false> population[populationSize][numberOfNodes]) {
+void fitness(ac_int<11, false> (&scores)[populationSize][2], ac_int<11,false> distances[numberOfNodes][numberOfNodes], ac_int<length,false> population[populationSize][numberOfNodes]) {
 	//This function
 	//input distances
 
@@ -93,13 +95,14 @@ void fitness(ac_int<11, false> (&scores)[populationSize], ac_int<11,false> dista
 	//calculate the sum of all the distances for a every chromosome
 	for (int i = 0; i < populationSize; i++) {
 
-		scores[i] = 0;
+		scores[i][0] = 0;
 
 		for (int j = 0; j < numberOfNodes - 1; j++) {
 
 			city1 = population[i][j];
 			city2 = population[i][j + 1];
-			scores[i] = scores[i] + distances[city1][city2];
+			scores[i][0] = scores[i][0] + distances[city1][city2];
+			scores[i][1] = city1;
 		}
 	}
 	//return a score vector, one score for every chromosome
@@ -141,9 +144,10 @@ void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes
 		}
 
 		// Fisher-Yates' shuffling
+		short k;
 		for (int l = 0; l < (numberOfNodes - 1); l++) {
 
-			short k = min(k + 5 + 1, numberOfNodes);
+			k = min(l + 5 + 1, numberOfNodes);
 			ac_int<length, false> temp = population[i][l];
 			population[i][l] = population[i][k];
 		}
@@ -162,7 +166,7 @@ void mutate(ac_int<length, false>(&population)[populationSize][numberOfNodes]) {
 
 	for (int i = 0; i < 10; i++) {
 
-		index = rand() % populationSize + (populationSize*0.25);
+		index = rand() % (populationSize - 25) + (populationSize * 0.25);
 		point1 = rand() % (numberOfNodes - 10);
 		point2 = rand() % (numberOfNodes - point1) + point1;
 		size = point2 - point1;
@@ -173,7 +177,18 @@ void mutate(ac_int<length, false>(&population)[populationSize][numberOfNodes]) {
 			population[index][size - j] = swapGenes;
 		}
 	}
+}
 
+void genetic(short distance_matrix[][numberOfNodes]) {
+	populationInit(distance_matrix);
+	ac_int<11, false> scores[populationSize][2];
+	for (int i = 0; i < maxGenerations; i++) {
+		
+		fitness();
+		cout << scores[0][0]<<endl;
+		crossover();
+		mutate();
+	}
 }
 
 // ** NOT THE FINAL MAIN FUNCTION **
@@ -189,6 +204,8 @@ int main() {
 			distance_matrix[j][i] = distance;
 		}
 	}
+
+
 	return 0;
 }
 
