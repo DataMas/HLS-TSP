@@ -40,27 +40,35 @@ bool geneRepeat(ac_int<length, false> gene, individual<length> chromosome) {
 }*/
 
 // ----- INITIALIZE -----
-void populationInit(ac_int<length, false> (&population)[populationSize][numberOfNodes]) {
-    // This function
-    // input population array, distances array
+void populationInit(ac_int<length, false> (&population) [populationSize][numberOfNodes]) {
+	// This function
+	// input population array, distances array
+	//ac_int<length, false> population[numberOfNodes];
+	srand(time(0));
+	for (int i = 0; i < populationSize; i++) {
 
-    for (int i = 0; i < populationSize; i++) {
+		for (int j = 0; j < numberOfNodes; j++) {
 
-        for (int j = 0; j < numberOfNodes; j++) {
+			population[i][j] = j;
+		}
 
-            population[i][j] = j;
-        }
+		// Fisher-Yates' shuffling
+		short right;
+		short index;
+		short len;
+		ac_int<length, false> temp;
 
-        // Fisher-Yates' shuffling
-        short k;
-        for (int l = 0; l < (numberOfNodes - 1); l++) {
+		
+		for (int l = 0; l < (numberOfNodes - 1); l++) {
 
-            k = min(l + 5 + 1, numberOfNodes);
-            ac_int<length, false> temp = population[i][l];
-            population[i][l] = population[i][k];
-            population[i][k] = temp;
-        }
-    }
+			right = min(l + 20 + 1, numberOfNodes-1);
+			len = l - right;
+			index = l + (rand() % len);
+			temp = population[i][l];
+			population[i][l] = population[i][index];
+			population[i][index] = temp;
+		}
+	}
 }
 
 // ----- To sort based on column in descending order -----
