@@ -4,10 +4,10 @@
 #include "ac_int.h"
 using namespace std;
 
-const int populationSize = 100;
-const int numberOfNodes = 100;
+const int populationSize = 200;
+const int numberOfNodes = 100;      //TODO: There is a bug for higher Number of Nodes, Max Generations (probably an overflow in a variable type)
 const int length = 7;
-const int maxGenerations = 100;
+const int maxGenerations = 1000;     //TODO: maybe we need memory de-allocation
 
 /*###################################################
 Some usefull links
@@ -48,8 +48,7 @@ void populationInit(ac_int<length, false> (&population) [populationSize][numberO
 	for (int i = 0; i < populationSize; i++) {
 
 		for (int j = 0; j < numberOfNodes; j++) {
-
-			population[i][j] = j;
+            population[i][j] = j;
 		}
 
 		// Fisher-Yates' shuffling
@@ -76,7 +75,7 @@ void sortByColumn(ac_int<11, false>(&vector)[populationSize][2]) {
     //This function
 
     ac_int<11, false> tempScore;
-    ac_int<7, false> tempIndex;
+    ac_int<11, false> tempIndex;         //TODO: It was 7. Why not 11?
 
     for (int i = 0; i < (populationSize - 1); i++) {
 
@@ -107,7 +106,7 @@ void fitness(ac_int<11, false> (&scores)[populationSize][2], ac_int<11,false> (&
 
         for (int j = 0; j < numberOfNodes - 1; j++) {
 
-            city1 = population[i][j];   //TODO: i==99 && j==93 Segmentation Fault here (City 1 and 2 are > 100) Shuffling doesn't work
+            city1 = population[i][j];
             city2 = population[i][j + 1];
             scores[i][0] = scores[i][0] + distances[city1][city2];
             scores[i][1] = city1;
@@ -118,7 +117,7 @@ void fitness(ac_int<11, false> (&scores)[populationSize][2], ac_int<11,false> (&
 }
 
 // ----- CROSSOVER -----
-void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes], ac_int<11, false> (&scores)[populationSize][2]) { //TODO:Maybe scores is unnecessary here
+void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes]) {
     // This function
     // Select the mating pool based on score
     // top 25% of scores keep it intact]
@@ -145,19 +144,25 @@ void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes
     }
     // Regenerate 50% of the population, last 2 4ths of the population
     for (int i = (populationSize * 0.5); i < populationSize; i++) {
-
         for (int j = 0; j < numberOfNodes; j++) {
-
             population[i][j] = j;
         }
 
         // Fisher-Yates' shuffling
-        short k;
+        short right;
+        short index;
+        short len;
+        ac_int<length, false> temp;
+
+
         for (int l = 0; l < (numberOfNodes - 1); l++) {
 
-            k = min(l + 5 + 1, numberOfNodes);
-            ac_int<length, false> temp = population[i][l];
-            population[i][l] = population[i][k];
+            right = min(l + 20 + 1, numberOfNodes-1);
+            len = l - right;
+            index = l + (rand() % len);
+            temp = population[i][l];
+            population[i][l] = population[i][index];
+            population[i][index] = temp;
         }
     }
 }
@@ -165,14 +170,13 @@ void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes
 // -----  MUTATION -----
 void mutate(ac_int<length, false>(&population)[populationSize][numberOfNodes]) {
 
-    int index;
+    short index;
     short point1;
     short point2;
     short size;
     ac_int<length, false> swapGenes;
 
-
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
 
         index = rand() % (populationSize - 25) + (populationSize * 0.25);
         point1 = rand() % (numberOfNodes - 10);
@@ -191,12 +195,15 @@ void genetic(ac_int<11, false> (&distance_matrix)[numberOfNodes][numberOfNodes])
     // -Initialize Population-
     ac_int<length, false> population[populationSize][numberOfNodes];
     populationInit(population);
-
+    int max = 30000;
     ac_int<11, false> scores[populationSize][2];
     for (int i = 0; i < maxGenerations; i++) {
         fitness(scores, distance_matrix, population);
-        cout << scores[0][0]<<endl;
-        crossover(population, scores);
+        if (scores[0][0] < max){
+            max = scores[0][0];
+            cout << "Generation " << i << " - Best Score: "<< scores[0][0]<< endl;
+        }
+        crossover(population);
         mutate(population);
     }
 }
@@ -214,9 +221,9 @@ int main() {
             distance_matrix[j][i] = distance;
         }
     }
-
+    cout << "Algorithm Starts..!" << endl;
     genetic(distance_matrix);
-
+    cout << "Algorithm Finished!" << endl;
     return 0;
 }
 
