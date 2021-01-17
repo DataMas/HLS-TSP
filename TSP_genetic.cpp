@@ -186,7 +186,6 @@ void genetic(ac_int<11, false> (&distance_matrix)[numberOfNodes][numberOfNodes])
     }
 }
 
-// ** NOT THE FINAL MAIN FUNCTION **
 int main() {
     srand(time(0));
 
