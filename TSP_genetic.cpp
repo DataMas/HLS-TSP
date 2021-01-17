@@ -14,7 +14,7 @@ Some usefull links
 https://www.obitko.com/tutorials/genetic-algorithms/ga-basic-description.php
 https://2ality.com/2013/03/permutations.html
 https://www.codeproject.com/articles/16286/ai-simple-genetic-algorithm-ga-to-solve-a-card-pro
-###################################################*
+###################################################*/
 
 // **Might be useless in the end**
 /*
@@ -38,15 +38,15 @@ bool geneRepeat(ac_int<length, false> gene, individual<length> chromosome) {
 		return false;
 	}
 }*/
+//TODO: Implement FIXED start ( Starting city will always be City: 0)
 
 // ----- INITIALIZE -----
-void populationInit(ac_int<length, false> (&population) [populationSize][numberOfNodes]) {
+void populationInit(ac_int<11, false> (&population) [populationSize][numberOfNodes]) {
 	// This function
 	// input population array, distances array
 	//ac_int<length, false> population[numberOfNodes];
-	srand(time(0));
-	for (int i = 0; i < populationSize; i++) {
 
+	for (int i = 0; i < populationSize; i++) {
 		for (int j = 0; j < numberOfNodes; j++) {
             population[i][j] = j;
 		}
@@ -55,10 +55,10 @@ void populationInit(ac_int<length, false> (&population) [populationSize][numberO
 		short right;
 		short index;
 		short len;
-		ac_int<length, false> temp;
+		ac_int<11, false> temp;
 
 		
-		for (int l = 0; l < (numberOfNodes - 1); l++) {
+		for (int l = 1; l < (numberOfNodes - 1); l++) {
 
 			right = min(l + 20 + 1, numberOfNodes-1);
 			len = l - right;
@@ -71,53 +71,62 @@ void populationInit(ac_int<length, false> (&population) [populationSize][numberO
 }
 
 // ----- To sort based on column in descending order -----
-void sortByColumn(ac_int<11, false>(&vector)[populationSize][2]) {
+void sortByColumn(ac_int<32, false>(&scores)[populationSize], ac_int<11,false> (&population)[populationSize][numberOfNodes]) {
     //This function
 
-    ac_int<11, false> tempScore;
-    ac_int<11, false> tempIndex;         //TODO: It was 7. Why not 11?
+    ac_int<32, false> tempScore;
+    ac_int<11, false> temp_pop[numberOfNodes];
 
-    for (int i = 0; i < (populationSize - 1); i++) {
+    //TODO: Another type of sort might be faster
+    for(int i=0;i<populationSize;i++)
+    {
+        for(int j=i+1;j<populationSize;j++)
+        {
+            if(scores[i]>=scores[j])
+            {
+                tempScore = scores[i];
+                scores[i] = scores[j];
+                scores[j] = tempScore;
 
-        if (vector[i][0] < vector[i + 1][0]) {
-
-            tempScore = vector[i][0];
-            tempIndex = vector[i][1];
-            vector[i][0] = vector[i + 1][0];
-            vector[i][1] = vector[i + 1][1];
-            vector[i + 1][0] = tempScore;
-            vector[i + 1][1] = tempIndex;
+                // sort the population
+                for (int k = 0; k < numberOfNodes; k++) {
+                    temp_pop[k] = population[i][k];
+                    population[i][k] = population[j][k];
+                    population[j][k] = temp_pop[k];
+                }
+            }
         }
     }
 }
 
 // ----- FITNESS -----
-void fitness(ac_int<11, false> (&scores)[populationSize][2], ac_int<11,false> (&distances)[numberOfNodes][numberOfNodes], ac_int<length,false> (&population)[populationSize][numberOfNodes]) {
+void fitness(ac_int<32, false> (&scores)[populationSize], ac_int<11,false> (&distances)[numberOfNodes][numberOfNodes], ac_int<11,false> (&population)[populationSize][numberOfNodes]) {
     //This function
     //input distances
+    //scores:
+    //    1st column holds the total sum of distances in chromosome
+    //    2nd column holds the population index which will be reordered at sorting process
 
-    ac_int<length, false> city1;
-    ac_int<length, false> city2;
-
+    ac_int<11, false> city1;
+    ac_int<11, false> city2;
     //calculate the sum of all the distances for a every chromosome
     for (int i = 0; i < populationSize; i++) {
-
-        scores[i][0] = 0;
-
+        scores[i] = 0;
         for (int j = 0; j < numberOfNodes - 1; j++) {
-
             city1 = population[i][j];
             city2 = population[i][j + 1];
-            scores[i][0] = scores[i][0] + distances[city1][city2];
-            scores[i][1] = city1;
+            cout << "city1 :" << city1 << endl;
+            cout << "city2 :" << city2 << endl;
+            scores[i] = scores[i] + distances[city1][city2];        // TODO: SEGMENTATION FAULT HERE
         }
     }
     //return a score vector, one score for every chromosome
-    sortByColumn(scores);
+    sortByColumn(scores, population);
+
 }
 
 // ----- CROSSOVER -----
-void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes]) {
+void crossover(ac_int<11, false> (&population)[populationSize][numberOfNodes]) {
     // This function
     // Select the mating pool based on score
     // top 25% of scores keep it intact]
@@ -127,9 +136,9 @@ void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes
     short point1;
     short point2;
     short size;
-    ac_int<length, false> swapGenes;
+    ac_int<11, false> swapGenes;
 
-    // crossover 25% of the population, 2nd 2th of the population
+    // crossover second quarter of the population
     for (int i = (populationSize * 0.25); i < (populationSize * 0.5); i++) {
 
         point1 = rand() % (numberOfNodes - 10);
@@ -144,18 +153,19 @@ void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes
     }
     // Regenerate 50% of the population, last 2 4ths of the population
     for (int i = (populationSize * 0.5); i < populationSize; i++) {
+
         for (int j = 0; j < numberOfNodes; j++) {
             population[i][j] = j;
         }
-
         // Fisher-Yates' shuffling
         short right;
         short index;
         short len;
-        ac_int<length, false> temp;
+        ac_int<11, false> temp;
 
-
-        for (int l = 0; l < (numberOfNodes - 1); l++) {
+                //   |----- let the starting city be city: 0
+                //   v
+        for (int l = 1; l < (numberOfNodes - 1); l++) {
 
             right = min(l + 20 + 1, numberOfNodes-1);
             len = l - right;
@@ -164,17 +174,18 @@ void crossover(ac_int<length, false> (&population)[populationSize][numberOfNodes
             population[i][l] = population[i][index];
             population[i][index] = temp;
         }
+
     }
 }
 
 // -----  MUTATION -----
-void mutate(ac_int<length, false>(&population)[populationSize][numberOfNodes]) {
+void mutate(ac_int<11, false>(&population)[populationSize][numberOfNodes]) {
 
     short index;
     short point1;
     short point2;
     short size;
-    ac_int<length, false> swapGenes;
+    ac_int<11, false> swapGenes;
 
     for (int i = 0; i < 20; i++) {
 
@@ -193,15 +204,16 @@ void mutate(ac_int<length, false>(&population)[populationSize][numberOfNodes]) {
 
 void genetic(ac_int<11, false> (&distance_matrix)[numberOfNodes][numberOfNodes]) {
     // -Initialize Population-
-    ac_int<length, false> population[populationSize][numberOfNodes];
+    ac_int<11, false> population[populationSize][numberOfNodes];
     populationInit(population);
-    int max = 30000;
-    ac_int<11, false> scores[populationSize][2];
+    int max = 1000000;
+    // DONE: scores HAS to be larger(in bits) because it cuts off the distances sum after some point
+    ac_int<32, false> scores[populationSize];
     for (int i = 0; i < maxGenerations; i++) {
         fitness(scores, distance_matrix, population);
-        if (scores[0][0] < max){
-            max = scores[0][0];
-            cout << "Generation " << i << " - Best Score: "<< scores[0][0]<< endl;
+        if (scores[0] < max){
+            max = scores[0];
+            cout << "Generation " << i << " - Best Score: "<< scores[0]<< endl;
         }
         crossover(population);
         mutate(population);
@@ -210,6 +222,8 @@ void genetic(ac_int<11, false> (&distance_matrix)[numberOfNodes][numberOfNodes])
 
 // ** NOT THE FINAL MAIN FUNCTION **
 int main() {
+    srand(time(0));
+
     //create distance matrix for fully connected graph
     ac_int<11, false> distance_matrix[numberOfNodes][numberOfNodes];
     for (int i = 0; i < numberOfNodes; ++i) {
