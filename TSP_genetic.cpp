@@ -5,40 +5,8 @@
 using namespace std;
 
 const int populationSize = 200;
-const int numberOfNodes = 100;      //TODO: There is a bug for higher Number of Nodes, Max Generations (probably an overflow in a variable type)
-const int length = 7;
-const int maxGenerations = 1000;     //TODO: maybe we need memory de-allocation
-
-/*###################################################
-Some usefull links
-https://www.obitko.com/tutorials/genetic-algorithms/ga-basic-description.php
-https://2ality.com/2013/03/permutations.html
-https://www.codeproject.com/articles/16286/ai-simple-genetic-algorithm-ga-to-solve-a-card-pro
-###################################################*/
-
-// **Might be useless in the end**
-/*
-void randomNum(int start, int finish, ac_int<length, false>& gene) {
-	// This function returns a random number between "start" and "finish"
-	// It is used for chromosome initialization with random genes
-
-	gene = start + rand() % (start - finish);
-}
-
-bool geneRepeat(ac_int<length, false> gene, individual<length> chromosome) {
-	// This function checks if a given gene is allready in a given chromosome
-	// We want every gene to occur once in every chromosome
-
-	for (int i = 0; i < numberOfNodes; i++) {
-
-		if (chromosome.gnome[i] == gene) {
-
-			return true;
-		}
-		return false;
-	}
-}*/
-//TODO: Implement FIXED start ( Starting city will always be City: 0)
+const int numberOfNodes = 100;
+const int maxGenerations = 1000;
 
 // ----- INITIALIZE -----
 void populationInit(ac_int<11, false> (&population) [populationSize][numberOfNodes]) {
@@ -77,7 +45,6 @@ void sortByColumn(ac_int<32, false>(&scores)[populationSize], ac_int<11,false> (
     ac_int<32, false> tempScore;
     ac_int<11, false> temp_pop[numberOfNodes];
 
-    //TODO: Another type of sort might be faster
     for(int i=0;i<populationSize;i++)
     {
         for(int j=i+1;j<populationSize;j++)
@@ -115,9 +82,7 @@ void fitness(ac_int<32, false> (&scores)[populationSize], ac_int<11,false> (&dis
         for (int j = 0; j < numberOfNodes - 1; j++) {
             city1 = population[i][j];
             city2 = population[i][j + 1];
-            cout << "city1 :" << city1 << endl;
-            cout << "city2 :" << city2 << endl;
-            scores[i] = scores[i] + distances[city1][city2];        // TODO: SEGMENTATION FAULT HERE
+            scores[i] = scores[i] + distances[city1][city2];
         }
     }
     //return a score vector, one score for every chromosome
@@ -185,17 +150,18 @@ void mutate(ac_int<11, false>(&population)[populationSize][numberOfNodes]) {
     short point1;
     short point2;
     short size;
+    short start = populationSize * 0.25;
     ac_int<11, false> swapGenes;
 
     for (int i = 0; i < 20; i++) {
 
-        index = rand() % (populationSize - 25) + (populationSize * 0.25);
+        index = rand() % (populationSize - start) + (populationSize * 0.25);
         point1 = rand() % (numberOfNodes - 10);
         point2 = rand() % (numberOfNodes - point1) + point1;
         size = point2 - point1;
 
         for (int j = point1; j < point2 / 2; ++j) {
-            swapGenes = population[i][j];
+            swapGenes = population[index][j];
             population[index][j] = population[index][size - j];
             population[index][size - j] = swapGenes;
         }
@@ -235,6 +201,14 @@ int main() {
             distance_matrix[j][i] = distance;
         }
     }
+//    for (int i = 0; i < numberOfNodes; ++i) {
+//        for (int j = 0; j < i; ++j) {                          <---- OPTIMIZED
+//            int distance = rand() % 1000 + 40;
+//            distance_matrix[i][j] = distance;
+//            distance_matrix[j][i] = distance;
+//        }
+//        distance_matrix[i][i] = 0;
+//    }
     cout << "Algorithm Starts..!" << endl;
     genetic(distance_matrix);
     cout << "Algorithm Finished!" << endl;
