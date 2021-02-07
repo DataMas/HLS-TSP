@@ -14,44 +14,46 @@ static const int maxGenerations = 1000;
 static const int max_pop_survivors = populationSize*0.25;
 static const int max_pop_crossover = populationSize*0.5;
 
+class LSFR {
+private:
+    ac_int<32, false> _state;
+public:
+    LSFR(int seed){
+        LSFR::_state = seed;
+    }
+
+    ac_int<32, false> run() {
+        bool b_32 = _state[31];
+        bool b_22 = _state[21];
+        bool b_2 = _state[1];
+        bool b_1 = _state[0];
+        bool new_bit = b_32 ^ b_22 ^ b_2 ^ b_1;
+        _state = _state >> 1;
+        _state[30] = new_bit;
+
+        return _state;
+    }
+};
+
 class genetic {
 public:
     // Constructor
     genetic(){};
-    
-	ac_int<32, false> LFSR(unsigned int seed,int load) { 
 
-		static ac_int<32, false> lfsr;
-	
-    	if (load ==1 )
-        	lfsr = seed;
-
-	   bool b_32 = lfsr[31];
-	   bool b_22 = lfsr[21];
-	   bool b_2 = lfsr[1];
-	   bool b_1 = lfsr[0];
-	   bool new_bit = b_32 ^ b_22 ^ b_2 ^ b_1;
-	   lfsr = lfsr >> 1;
-	   lfsr[30] = new_bit;
-	   
-	   return lfsr;
-
-    }
-	
 	//TODO: fill array of addresses
     // ----- INITIALIZE -----
-    void populationInit(ac_int<11, false> population[populationSize][numberOfNodes], int (*populationAddresses)[populationSize]) {
+    void populationInit(ac_int<11, false> population[populationSize][numberOfNodes], int (*populationAddresses)[populationSize], LSFR RAND ) {
         // This function
         // input population array, distances array
         //ac_int<length, false> population[numberOfNodes];
-		populationAddresses[0] = &population[0];
-		
+		//populationAddresses[0] = &population[0];
+
         initPOP: for (int i = 0; i < populationSize; i++) {
             initNODES: for (int j = 0; j < numberOfNodes; j++) {
                 population[i][j] = j;
             }
-            
-			
+
+
 			
             // Fisher-Yates' shuffling
             short right;
@@ -64,7 +66,7 @@ public:
                 
                 right = min(l + 20 + 1, numberOfNodes - 1);
                 len = l - right;
-                index = l + (LFSR(0,0) % len);
+                index = l + ( RAND.run() % len);
                 temp = population[i][l];
                 population[i][l] = population[i][index];
                 population[i][index] = temp;
@@ -74,7 +76,7 @@ public:
     
     // TODO: sort array of addresses
     // ----- To sort based on column in descending order -----
-    void sortByColumn(ac_int<32, false> scores[populationSize], ac_int<11, false> population[populationSize][numberOfNodes]) {
+    void sortByColumn(ac_int<32, false> scores[populationSize], ac_int<11, false> population[populationSize][numberOfNodes], LSFR RAND) {
         //This function
 
         ac_int<32, false> tempScore;
@@ -103,7 +105,7 @@ public:
     }
 
     // ----- FITNESS -----
-    void fitness(ac_int<32, false> scores[populationSize], ac_int<11, false> distances[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes]) {
+    void fitness(ac_int<32, false> scores[populationSize], ac_int<11, false> distances[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes], LSFR RAND) {
         //This function
         //input distances
         //scores:
@@ -122,12 +124,12 @@ public:
             }
         }
         //return a score vector, one score for every chromosome
-        sortByColumn(scores, population);
+        sortByColumn(scores, population, RAND);
 
     }
     //#pragma_hls_design
     // ----- CROSSOVER -----
-    void crossover(ac_int<11, false> population[populationSize][numberOfNodes]) {
+    void crossover(ac_int<11, false> population[populationSize][numberOfNodes], LSFR RAND) {
         // This function
         // Select the mating pool based on score
         // top 25% of scores keep it intact]
@@ -148,7 +150,7 @@ public:
 	        ac_int<7, false> middle;
 	        ac_int<32, false> randomNumber;
         
-			randomNumber = LFSR(0,0);
+			randomNumber = RAND.run();
 			point1 = randomNumber.slc<7>(0);
 			point2 = randomNumber.slc<7>(5);
 			
@@ -186,7 +188,7 @@ public:
 
                 right = min(l + 20 + 1, numberOfNodes - 1);
                 len = l - right;
-                index = l + (LFSR(0,0) % len);
+                index = l + (RAND.run() % len);
                 temp = population[i][l];
                 population[i][l] = population[i][index];
                 population[i][index] = temp;
@@ -196,7 +198,7 @@ public:
     }
     
      // -----  MUTATION -----
-    void mutate(ac_int<11, false> population[populationSize][numberOfNodes]) {
+    void mutate(ac_int<11, false> population[populationSize][numberOfNodes], LSFR RAND) {
 
         ac_int<7, false> index;
         ac_int<7, false> point1;
@@ -209,7 +211,7 @@ public:
 
         mutationPOINTS: for (int i = 0; i < 20; i++) {
 			
-			randomNumber = LFSR(0,0);
+			randomNumber = RAND.run();
 			point1 = randomNumber.slc<7>(0);
 			point2 = randomNumber.slc<7>(5);
 			
@@ -243,28 +245,29 @@ public:
     genetic_block(){};
     
     
-    
     // assign genetic function as the interface
     #pragma hls_design interface
     void run (ac_int<11, false> distance_matrix[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes]) {
-        
-        gen.LFSR(11,1);
-        
+
+
+        //gen.LFSR(11,1);
+        LSFR RAND(31);
+
         // -Initialize Population-
     	int (*populationAddresses)[populationSize];
-        gen.populationInit(population, populationAddresses);
+        gen.populationInit(population, populationAddresses, RAND);
         int max = 1000000;
         // DONE: scores HAS to be larger(in bits) because it cuts off the distances sum after some point
         ac_int<32, false> scores[populationSize];
         
         geneticGENERATIONS: for (int i = 0; i < maxGenerations; i++) {
-        gen.fitness(scores, distance_matrix, population);
+        gen.fitness(scores, distance_matrix, population, RAND);
         if (scores[0] < max) {
             max = scores[0];
             cout << "Generation " << i << " - Best Score: " << scores[0] << endl;
         }
-        gen.crossover(population);
-        gen.mutate(population);
+        gen.crossover(population, RAND);
+        gen.mutate(population, RAND);
         }
     }
 
