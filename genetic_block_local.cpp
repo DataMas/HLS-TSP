@@ -10,11 +10,10 @@ using namespace std;
 
 static const int populationSize = 128;
 static const int numberOfNodes = 128;
-static const int maxGenerations = 1000;
+static const int maxGenerations = 10000;
 static const int max_pop_survivors = populationSize*0.25;
 static const int max_pop_crossover = populationSize*0.5;
 
-// TODO: Display Final Path Solution
 
 class LSFR {
 private:
@@ -44,17 +43,12 @@ public:
 
     // ----- INITIALIZE -----
     void populationInit(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR RAND ) {
-        // This function
-        // input population array, distances array
-        //ac_int<length, false> population[numberOfNodes];
-		//populationAddresses[0] = &population[0];
 
         initPOP: for (int i = 0; i < populationSize; i++) {
             initNODES: for (int j = 0; j < numberOfNodes; j++) {
                 population[i][j] = j;
             }
 
-			
             // Fisher-Yates' shuffling
             short right;
             short index;
@@ -84,13 +78,9 @@ public:
         ac_int<32, false> tempScore;
         ac_int<11, false> *temp_pointer_swap;
 
-        sortPOPI: for (int i = 0; i < populationSize; i++)
-        {
-            sortPOPJ: for (int j = i + 1; j < populationSize; j++)
-            {
-
-                if (scores[i] >= scores[j])
-                {
+        sortPOPI: for (int i = 0; i < populationSize; i++){
+            sortPOPJ: for (int j = i + 1; j < populationSize; j++){
+                if (scores[i] >= scores[j]){
                     // Sort Scores array
                     tempScore = scores[i];
                     scores[i] = scores[j];
@@ -100,7 +90,6 @@ public:
                     temp_pointer_swap = populationAddresses[i];
                     populationAddresses[i] = populationAddresses[j];
                     populationAddresses[j] = temp_pointer_swap;
-
                 }
             }
         }
@@ -162,7 +151,6 @@ public:
             size = point2  - point1;
             middle = (point1 + size) / 2;
 
-            //DONE: Access the right population chromosome using the pointer address-array
             crossoverSWAP: for (int j = point1; j < middle; ++j) {
                 ac_int<11, false> offset = size-j;
                 swapGenes = *(populationAddresses[i]+j);
@@ -172,10 +160,10 @@ public:
         }
         // Regenerate 50% of the population last 2 4ths of the population
         crossoverREG: for (int i = (max_pop_crossover); i < populationSize; i++) {
-
             regINIT: for (int j = 0; j < numberOfNodes; j++) {
-                *populationAddresses[i]+j = j;
+                *(populationAddresses[i]+j) = j;
             }
+
             // Fisher-Yates' shuffling
             short right;
             short index;
@@ -186,7 +174,6 @@ public:
             //                      |----- let the starting city be city: 0
             //                      v
             regSHUFLE: for (int l = 1; l < (numberOfNodes - 1); l++) {
-
                 right = min(l + 20 + 1, numberOfNodes - 1);
                 len = l - right;
                 index = l + (RAND.run() % len);
@@ -194,7 +181,6 @@ public:
                 *(populationAddresses[i]+l) = *(populationAddresses[i]+index);
                 *(populationAddresses[i]+index) = temp;
             }
-
         }
     }
     
@@ -209,7 +195,7 @@ public:
         ac_int<11, false> swapGenes;
         ac_int<32, false> randomNumber;
 
-        mutationPOINTS: for (int i = 0; i < 20; i++) {
+        mutationPOINTS: for (int i = 0; i < 40; i++) {
 			
 			randomNumber = RAND.run();
 			point1 = randomNumber.slc<7>(0);
@@ -224,17 +210,11 @@ public:
             size = point2  - point1;
             middle = (point1 + size) / 2;
 
-            // TODO: Decide where which array to keep, population or pointer array?!
-//           mutationSWAP:  for (int j = point1; j < middle; ++j) {
-//                ac_int<11, false> offset = size-j;
-//                swapGenes = *populationAddresses[index]+j;
-//                *populationAddresses[index]+j = *populationAddresses[index]+offset;
-//                *populationAddresses[index]+offset = swapGenes;
-//            }
-            mutationSWAP:  for (int j = point1; j < middle; ++j) { //*************
+            mutationSWAP:  for (int j = point1; j < middle; ++j) {
+                int offset = size-j;
                 swapGenes = population[index][j];
-                population[index][j] = population[index][size - j];
-                population[index][size - j] = swapGenes;
+                population[index][j] = population[index][offset];
+                population[index][offset] = swapGenes;
             }
         }
     }
@@ -256,8 +236,6 @@ public:
     #pragma hls_design interface
     void run (ac_int<11, false> distance_matrix[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes]) {
 
-
-        //gen.LFSR(11,1);
         LSFR RAND(31);
 
         // -Initialize Population-
@@ -268,14 +246,19 @@ public:
         ac_int<32, false> scores[populationSize];
         
         geneticGENERATIONS: for (int i = 0; i < maxGenerations; i++) {
-        gen.fitness(scores, distance_matrix, population, populationAddresses, RAND);
-        if (scores[0] < max) {
-            max = scores[0];
-            cout << "Generation " << i << " - Best Score: " << scores[0] << endl;
+            gen.fitness(scores, distance_matrix, population, populationAddresses, RAND);
+            if (scores[0] < max) {
+                max = scores[0];
+                cout << "Generation " << i << " - Best Score: " << scores[0] << endl;
+            }
+            gen.crossover(population, populationAddresses, RAND);
+            gen.mutate(population, populationAddresses, RAND);
         }
-        gen.crossover(population, populationAddresses, RAND);
-        gen.mutate(population, populationAddresses, RAND);
+        cout << "Optimal path : ";
+        for (int i = 0; i <numberOfNodes-1; ++i) {
+            cout << " -> "<< *(populationAddresses[0]+i) ;
         }
+        cout << endl;
     }
 
 };
@@ -288,22 +271,13 @@ int main () {
     ac_int<11, false> distance_matrix[numberOfNodes][numberOfNodes];
     ac_int<11, false> population[populationSize][numberOfNodes];
     mainDISTANCE_I: for (int i = 0; i < numberOfNodes; ++i) {
-        mainDISTANCE_J: for (int j = 0; j < numberOfNodes; ++j) {
-            //distances vary from 40 + 1000 km
-            if (i == j) { continue; }
+        mainDISTANCE_J: for (int j = 0; j < i; ++j) {
             int distance = rand() % 1000 + 40;
             distance_matrix[i][j] = distance;
             distance_matrix[j][i] = distance;
         }
+        distance_matrix[i][i] = 0;
     }
-    //    for (int i = 0; i < numberOfNodes; ++i) {
-    //        for (int j = 0; j < i; ++j) {                          <---- OPTIMIZED
-    //            int distance = rand() % 1000 + 40;
-    //            distance_matrix[i][j] = distance;
-    //            distance_matrix[j][i] = distance;
-    //        }
-    //        distance_matrix[i][i] = 0;
-    //    }
     cout << "Algorithm Starts..!" << endl;
     GHLS.run(distance_matrix,population);
     cout << "Algorithm Finished!" << endl;
