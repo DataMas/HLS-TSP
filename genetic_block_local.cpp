@@ -42,13 +42,12 @@ public:
     genetic(){};
 
     // ----- INITIALIZE -----
-    void populationInit(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR RAND ) {
+    void populationInit(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND ) {
 
         initPOP: for (int i = 0; i < populationSize; i++) {
             initNODES: for (int j = 0; j < numberOfNodes; j++) {
                 population[i][j] = j;
             }
-
             // Fisher-Yates' shuffling
             short right;
             short index;
@@ -72,12 +71,11 @@ public:
     }
 
     // ----- To sort based on column in descending order -----
-    void sortByColumn(ac_int<32, false> scores[populationSize], ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR RAND) {
+    void sortByColumn(ac_int<32, false> scores[populationSize], ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
         //This function
 
         ac_int<32, false> tempScore;
         ac_int<11, false> *temp_pointer_swap;
-
         sortPOPI: for (int i = 0; i < populationSize; i++){
             sortPOPJ: for (int j = i + 1; j < populationSize; j++){
                 if (scores[i] >= scores[j]){
@@ -96,13 +94,12 @@ public:
     }
 
     // ----- FITNESS -----
-    void fitness(ac_int<32, false> scores[populationSize], ac_int<11, false> distances[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR RAND) {
+    void fitness(ac_int<32, false> scores[populationSize], ac_int<11, false> distances[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
         //This function
         //input distances
         //scores:
         //    1st column holds the total sum of distances in chromosome
         //    2nd column holds the population index which will be reordered at sorting process
-
         ac_int<11, false> city1;
         ac_int<11, false> city2;
         //calculate the sum of all the distances for a every chromosome
@@ -120,7 +117,7 @@ public:
     }
     //#pragma_hls_design
     // ----- CROSSOVER -----
-    void crossover(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR RAND) {
+    void crossover(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
         // This function
         // Select the mating pool based on score
         // top 25% of scores keep it intact]
@@ -185,7 +182,7 @@ public:
     }
     
      // -----  MUTATION -----
-    void mutate(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR RAND) {
+    void mutate(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
 
         ac_int<7, false> index;
         ac_int<7, false> point1;
@@ -236,8 +233,7 @@ public:
     #pragma hls_design interface
     void run (ac_int<11, false> distance_matrix[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes]) {
 
-        LSFR RAND(31);
-
+        LSFR RAND(11);
         // -Initialize Population-
         ac_int<11, false> *populationAddresses[populationSize];
 
