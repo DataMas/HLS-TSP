@@ -55,14 +55,40 @@ public:
             ac_int<11, false> temp;
                 
         	//TODO: HLS optimized shuffling
-            initSHUFLE: for (int l = 1; l < (numberOfNodes - 1); l++) {
-                
-                right = min(l + 20 + 1, numberOfNodes - 1);
-                len = l - right;
-                index = l + ( RAND.run() % len);
-                temp = population[i][l];
-                population[i][l] = population[i][index];
-                population[i][index] = temp;
+//            initSHUFLE: for (int l = 1; l < (numberOfNodes - 1); l++) {
+//
+//                right = min(l + 20 + 1, numberOfNodes - 1);
+//                len = l - right;
+//                index = l + ( RAND.run() % len);
+//                temp = population[i][l];
+//                population[i][l] = population[i][index];
+//                population[i][index] = temp;
+//            }
+
+            // 2nd try of shuffling
+            ac_int<7, false> point1,point3,point5;
+            ac_int<7, false> point2,point4,point6;
+            ac_int<32, false> randomNumber;
+
+            for (int j = 0; j < 64; ++j) {
+                randomNumber = RAND.run();
+                point1 = randomNumber.slc<6>(0) +1;
+                point2 = randomNumber.slc<6>(6) +1;
+                temp = population[i][point1];
+                population[i][point1] = population[i][point2];
+                population[i][point2] = temp;
+
+                point3 = randomNumber.slc<6>(17) + 64;
+                point4 = randomNumber.slc<6>(13) + 64;
+                temp = population[i][point3];
+                population[i][point3] = population[i][point4];
+                population[i][point4] = temp;
+
+                point5 = randomNumber.slc<7>(10);
+                point6 = randomNumber.slc<7>(22);
+                temp = population[i][point5];
+                population[i][point5] = population[i][point6];
+                population[i][point6] = temp;
             }
 
             // Keep the address of the chromosome's beginning
@@ -167,16 +193,42 @@ public:
             short len;
             ac_int<11, false> temp;
 
-			//***** TODO: HLS optimized shuffling
-            //                      |----- let the starting city be city: 0
-            //                      v
-            regSHUFLE: for (int l = 1; l < (numberOfNodes - 1); l++) {
-                right = min(l + 20 + 1, numberOfNodes - 1);
-                len = l - right;
-                index = l + (RAND.run() % len);
-                temp = *(populationAddresses[i]+l);
-                *(populationAddresses[i]+l) = *(populationAddresses[i]+index);
-                *(populationAddresses[i]+index) = temp;
+//			//***** TODO: HLS optimized shuffling
+//            //                      |----- let the starting city be city: 0
+//            //                      v
+//            regSHUFLE: for (int l = 1; l < (numberOfNodes - 1); l++) {
+//                right = min(l + 20 + 1, numberOfNodes - 1);
+//                len = l - right;
+//                index = l + (RAND.run() % len);
+//                temp = *(populationAddresses[i]+l);
+//                *(populationAddresses[i]+l) = *(populationAddresses[i]+index);
+//                *(populationAddresses[i]+index) = temp;
+//            }
+
+            // 2nd try of shuffling
+            ac_int<7, false> point1,point3,point5;
+            ac_int<7, false> point2,point4,point6;
+            ac_int<32, false> randomNumber;
+
+            for (int j = 0; j < 64; ++j) {
+                randomNumber = RAND.run();
+                point1 = randomNumber.slc<6>(0) +1;
+                point2 = randomNumber.slc<6>(6) +1;
+                temp = population[i][point1];
+                population[i][point1] = population[i][point2];
+                population[i][point2] = temp;
+
+                point3 = randomNumber.slc<6>(17) + 64;
+                point4 = randomNumber.slc<6>(13) + 64;
+                temp = population[i][point3];
+                population[i][point3] = population[i][point4];
+                population[i][point4] = temp;
+
+                point5 = randomNumber.slc<7>(10);
+                point6 = randomNumber.slc<7>(22);
+                temp = population[i][point5];
+                population[i][point5] = population[i][point6];
+                population[i][point6] = temp;
             }
         }
     }
