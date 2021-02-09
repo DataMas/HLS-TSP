@@ -54,7 +54,7 @@ public:
             short len;
             ac_int<11, false> temp;
                 
-        	//TODO: HLS optimized shuffling
+//        	// HLS optimized shuffling
 //            initSHUFLE: for (int l = 1; l < (numberOfNodes - 1); l++) {
 //
 //                right = min(l + 20 + 1, numberOfNodes - 1);
@@ -214,21 +214,21 @@ public:
                 randomNumber = RAND.run();
                 point1 = randomNumber.slc<6>(0) +1;
                 point2 = randomNumber.slc<6>(6) +1;
-                temp = population[i][point1];
-                population[i][point1] = population[i][point2];
-                population[i][point2] = temp;
+                temp = *(populationAddresses[i]+point1);
+                *(populationAddresses[i]+point1) = *(populationAddresses[i]+point2);
+                *(populationAddresses[i]+point2) = temp;
 
                 point3 = randomNumber.slc<6>(17) + 64;
                 point4 = randomNumber.slc<6>(13) + 64;
-                temp = population[i][point3];
-                population[i][point3] = population[i][point4];
-                population[i][point4] = temp;
+                temp = *(populationAddresses[i]+point3);
+                *(populationAddresses[i]+point3) = *(populationAddresses[i]+point4);
+                *(populationAddresses[i]+point4) = temp;
 
                 point5 = randomNumber.slc<7>(10);
                 point6 = randomNumber.slc<7>(22);
-                temp = population[i][point5];
-                population[i][point5] = population[i][point6];
-                population[i][point6] = temp;
+                temp = *(populationAddresses[i]+point5);
+                *(populationAddresses[i]+point5) = *(populationAddresses[i]+point6);
+                *(populationAddresses[i]+point6) = temp;
             }
         }
     }
