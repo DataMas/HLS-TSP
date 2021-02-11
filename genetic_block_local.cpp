@@ -1,14 +1,14 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
-
+#include <fstream>
 #include "ac_int.h"
 
 //#include "mc_scverify.h"
 
 using namespace std;
 
-static const int populationSize = 128;
+static const int populationSize = 512;
 static const int numberOfNodes = 128;
 static const int maxGenerations = 100000;
 static const int max_pop_survivors = populationSize*0.25;
@@ -45,14 +45,13 @@ public:
     void populationInit(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND ) {
 
         initPOP: for (int i = 0; i < populationSize; i++) {
-
             initNODES: for (int j = 0; j < numberOfNodes; j++) {
                 population[i][j] = j;
             }
-            // Fisher-Yates' shuffling
-            short right;
-            short index;
-            short len;
+//            // Fisher-Yates' shuffling
+//            short right;
+//            short index;
+//            short len;
             ac_int<11, false> temp;
                 
 //        	// HLS optimized shuffling
@@ -109,8 +108,7 @@ public:
     }
 
     // ----- To sort based on column in descending order -----
-    void sortByColumn(ac_int<32, false> scores[populationSize], ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
-        //This function
+    void sortByColumn(ac_int<32, false> scores[populationSize], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
 
         ac_int<32, false> tempScore;
         ac_int<11, false> *temp_pointer_swap;
@@ -133,9 +131,9 @@ public:
 
     // ----- FITNESS -----
     void fitness(ac_int<32, false> scores[populationSize], ac_int<11, false> distances[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
-        //This function
-        //input distances
-        //scores:
+        // This function
+        // input distances
+        // scores:
         //    1st column holds the total sum of distances in chromosome
         //    2nd column holds the population index which will be reordered at sorting process
         ac_int<11, false> city1;
@@ -150,22 +148,27 @@ public:
             }
         }
         //return a score vector, one score for every chromosome
-        sortByColumn(scores, population, populationAddresses, RAND);
-
+        sortByColumn(scores, populationAddresses, RAND);
     }
+
     //#pragma_hls_design
     // ----- CROSSOVER -----
-    void crossover(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
+    void crossover(ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
         // This function
         // Select the mating pool based on score
         // top 25% of scores keep it intact]
         // second 25% of the population is being crossovered
         // last 2 25% of the population are being randomly regenerated
 
+        ac_int<11, false> index_copy;
         ac_int<11, false> swapGenes;
-
         // crossover second quarter of the population
         cross: for (int i = (max_pop_survivors); i < (max_pop_crossover); i++) {
+            index_copy = i - max_pop_survivors;
+            // copy best genes to 2nd quarter of population
+            copyBEST: for (int j = 0; j < numberOfNodes; ++j) {
+                *(populationAddresses[i]+j) = *(populationAddresses[index_copy]+j);
+            }
 
 	        ac_int<7, false> point1;
 	        ac_int<7, false> point2;
@@ -199,17 +202,12 @@ public:
         // Regenerate 50% of the population last 2 4ths of the population
         crossoverREG: for (int i = (max_pop_crossover); i < populationSize; i++) {
 
-//            regINIT: for (int j = 0; j < numberOfNodes; j++) {
-//                *(populationAddresses[i]+j) = j;
-//            }
-
             // Fisher-Yates' shuffling
             short right;
             short index;
             short len;
             ac_int<11, false> temp;
 
-//			//***** TODO: HLS optimized shuffling
 //            //                      |----- let the starting city be city: 0
 //            //                      v
 //            regSHUFLE: for (int l = 1; l < (numberOfNodes - 1); l++) {
@@ -258,18 +256,15 @@ public:
     }
     
      // -----  MUTATION -----
-    void mutate(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LSFR &RAND) {
+    void mutate(ac_int<11, false> population[populationSize][numberOfNodes],  LSFR &RAND) {
 
-        ac_int<7, false> index;
+        ac_int<8, false> index;
         ac_int<7, false> point1;
         ac_int<7, false> point2;
-        ac_int<7, false> size;
-        ac_int<7, false> middle;
         ac_int<11, false> swapGenes;
         ac_int<32, false> randomNumber;
 
-        mutationPOINTS: for (int i = 0; i < 40; i++) {
-			
+         mutationSWAP: for (int i = 0; i < 40; i++) {
 			randomNumber = RAND.run();
 			point1 = randomNumber.slc<7>(0);
 			point2 = randomNumber.slc<7>(5);
@@ -282,18 +277,13 @@ public:
                 point2[0] = 1;
 			}
 
-            index = randomNumber.slc<7>(13);
+            index = randomNumber.slc<9>(13); // 9 for 512
             // leave the best two chromosomes as they are
             index[1]=1;
-            size = point2  - point1;
-            middle = (point1 + size) / 2;
 
-            mutationSWAP:  for (int j = point1; j < middle; ++j) {
-                int offset = size-j;
-                swapGenes = population[index][j];
-                population[index][j] = population[index][offset];
-                population[index][offset] = swapGenes;
-            }
+            swapGenes = population[index][point1];
+            population[index][point1] = population[index][point2];
+            population[index][point2] = swapGenes;
         }
     }
         
@@ -308,13 +298,12 @@ private:
 public:
     // Constructor
     genetic_block(){};
-    
-    
+
     // assign genetic function as the interface
     #pragma hls_design interface
     void run (ac_int<11, false> distance_matrix[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes]) {
 
-        LSFR RAND(31);
+        LSFR RAND(12);
         // -Initialize Population-
         ac_int<11, false> *populationAddresses[populationSize];
 
@@ -328,14 +317,24 @@ public:
                 max = scores[0];
                 cout << "Generation " << i << " - Best Score: " << scores[0] << endl;
             }
-            gen.crossover(population, populationAddresses, RAND);
-            gen.mutate(population, populationAddresses, RAND);
+            gen.crossover(populationAddresses, RAND);
+            gen.mutate(population, RAND);
         }
-        cout << "Optimal path : ";
-        for (int i = 0; i <numberOfNodes-1; ++i) {
-            cout << " -> "<< *(populationAddresses[0]+i) ;
+        fstream my_file;
+        my_file.open("optimal.txt", ios::out);
+        if (!my_file) {
+            cout << "File not created!"<< endl;
         }
-        cout << endl;
+        else {
+            cout << "File created successfully!"<< endl;
+            cout << "Optimal path : ";
+            for (int i = 0; i <numberOfNodes-1; ++i) {
+                my_file << *(populationAddresses[0]+i) << ",";
+                cout << " -> "<< *(populationAddresses[0]+i) ;
+            }
+            cout << endl;
+            my_file.close();
+        }
     }
 
 };
