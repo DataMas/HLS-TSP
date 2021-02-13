@@ -10,6 +10,7 @@ using namespace std;
 
 static const int populationSize = 512;
 static const int numberOfNodes = 128;
+static const int totalSwaps = 2*numberOfNodes;
 static const int maxGenerations = 1000000;
 static const int max_pop_survivors = populationSize*0.25;
 static const int max_pop_crossover = populationSize*0.5;
@@ -58,7 +59,7 @@ public:
             ac_int<7, false> point2,point4,point6;
             ac_int<32, false> randomNumber;
 
-            initSHUFFLE: for (int j = 0; j < 100; ++j) {
+            initSHUFFLE: for (int j = 0; j < totalSwaps; ++j) {
                 randomNumber = RAND.run();
                 // range 0 - 63
                 point1 = randomNumber.slc<6>(0);
@@ -194,7 +195,7 @@ public:
             ac_int<7, false> point2;
             ac_int<32, false> randomNumber;
 
-            for (int j = 0; j < 150; ++j) {
+            for (int j = 0; j < totalSwaps; ++j) {
                 randomNumber = RAND.run();
                 // range 0 - 127
                 point1 = randomNumber.slc<7>(2);
