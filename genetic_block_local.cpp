@@ -195,7 +195,7 @@ public:
             ac_int<7, false> point2;
             ac_int<32, false> randomNumber;
 
-            for (int j = 0; j < totalSwaps; ++j) {
+            crossoverSHUFFLE: for (int j = 0; j < totalSwaps; ++j) {
                 randomNumber = RAND.run();
                 // range 0 - 127
                 point1 = randomNumber.slc<7>(2);
