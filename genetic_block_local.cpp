@@ -11,7 +11,7 @@ using namespace std;
 static const int populationSize = 512;
 static const int numberOfNodes = 128;
 static const int totalSwaps = 2*numberOfNodes;
-static const int maxGenerations = 1000000;
+static const int maxGenerations = 10000;
 static const int max_pop_survivors = populationSize*0.25;
 static const int max_pop_crossover = populationSize*0.5;
 
@@ -45,7 +45,7 @@ private:
 
         initPOP: for (int i = 0; i < populationSize; i++) {
             initNODES: for (int j = 0; j < numberOfNodes; j++) {
-            population[i][j] = j;
+                population[i][j] = j;
             }
 
             ac_int<11, false> temp;
@@ -89,7 +89,7 @@ private:
 
             // Keep the address of each chromosome in an array of pointers
             //populationAddresses[i] = &population[i][0];
-            populationAddresses[i] = population[i];     //<----CHANGED
+            populationAddresses[i] = i;     //<----CHANGED
         }
     }
 
@@ -98,7 +98,8 @@ private:
         // Sort chromosomes based on their fitness Score
 
         ac_int<32, false> tempScore;
-        ac_int<11, false> *temp_pointer_swap;
+        //ac_int<11, false> *temp_pointer_swap;
+        ac_int<11, false> temp_pointer_swap;   //<----CHANGED
         sortPOPI: for (int i = 0; i < populationSize; i++){
             sortPOPJ: for (int j = i + 1; j < populationSize; j++){
                 if (scores[i] >= scores[j]){
@@ -136,7 +137,7 @@ private:
     }
 
     //#pragma_hls_design
-    void crossover( LFSR &RAND) {
+    void crossover(ac_int<11, false> population[populationSize][numberOfNodes], LFSR &RAND) {
         /*
          *  25% of population, survives as it is.
          *  25% of population, copies the 1st 25% and them gets crossover (random area flip)
@@ -150,7 +151,8 @@ private:
             index_copy = i - max_pop_survivors;
             // Copy the best genes
             copyBEST: for (int j = 0; j < numberOfNodes; ++j) {
-                *(populationAddresses[i]+j) = *(populationAddresses[index_copy]+j);
+                //*(populationAddresses[i]+j) = *(populationAddresses[index_copy]+j);
+                 population[populationAddresses[i]][j] = population[populationAddresses[index_copy]][j];         //<----CHANGED
             }
 
             ac_int<7, false> point1;
@@ -177,9 +179,12 @@ private:
 
             crossoverSWAP: for (int j = point1; j < middle; ++j) {
                 ac_int<11, false> offset = size-j;
-                swapGenes = *(populationAddresses[i]+j);
-                *(populationAddresses[i]+j) = *(populationAddresses[i]+offset);
-                *(populationAddresses[i]+offset) = swapGenes;
+//                swapGenes = *(populationAddresses[i]+j);
+//                *(populationAddresses[i]+j) = *(populationAddresses[i]+offset);
+//                *(populationAddresses[i]+offset) = swapGenes;
+                swapGenes = population[populationAddresses[i]][j];                    //<----CHANGED
+                population[populationAddresses[i]][j] = population[populationAddresses[i]][offset];
+                population[populationAddresses[i]][offset] = swapGenes;
             }
         }
 
@@ -187,7 +192,6 @@ private:
         crossoverREG: for (int i = (max_pop_crossover); i < populationSize; i++) {
 
             ac_int<11, false> temp;
-
             ac_int<7, false> point1;
             ac_int<7, false> point2;
             ac_int<32, false> randomNumber;
@@ -199,9 +203,12 @@ private:
                 point2 = randomNumber.slc<7>(16);
                 point1[0] = 1;  //force numbers to be >0
                 point2[0] = 1;
-                temp = *(populationAddresses[i]+point1);
-                *(populationAddresses[i]+point1) = *(populationAddresses[i]+point2);
-                *(populationAddresses[i]+point2) = temp;
+//                temp = *(populationAddresses[i]+point1);
+//                *(populationAddresses[i]+point1) = *(populationAddresses[i]+point2);
+//                *(populationAddresses[i]+point2) = temp;
+                temp = population[populationAddresses[i]][point1];                    //<----CHANGED
+                population[populationAddresses[i]][point1] = population[populationAddresses[i]][point2];
+                population[populationAddresses[i]][point2] = temp;
             }
         }
     }
@@ -241,7 +248,7 @@ private:
         }
     }
 
-    ac_int<11, false> *populationAddresses[populationSize];
+    ac_int<11, false> populationAddresses[populationSize];
 public:
     // Constructor
     genetic(){};
@@ -255,7 +262,10 @@ public:
 
         // Initialize population
         populationInit(population, RAND);
-
+//        for (int i = 0; i <numberOfNodes-1; ++i) {
+//            cout <<  population[*populationAddresses[i]] << "  " ;
+//        }
+//        cout << endl;
         int max = 1000000;
         ac_int<32, false> scores[populationSize];
         geneticGENERATIONS: for (int i = 0; i < maxGenerations; i++) {
@@ -264,7 +274,7 @@ public:
                 max = scores[0];
                 cout << "Generation " << i << " - Best Score: " << scores[0] << endl;
             }
-            crossover( RAND);
+            crossover(population, RAND);
             mutate(population, RAND);
         }
 //        fstream my_file;
@@ -277,7 +287,7 @@ public:
             cout << "Optimal path : ";
             for (int i = 0; i <numberOfNodes-1; ++i) {
  //               my_file << *(populationAddresses[0]+i) << ",";
-                cout << " -> "<< *(populationAddresses[0]+i) ;
+                cout << " -> "<< population[populationAddresses[0]][i] ;
             }
             cout << endl;
 //            my_file.close();
