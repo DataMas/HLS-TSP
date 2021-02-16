@@ -100,12 +100,15 @@ private:
         ac_int<32, false> tempScore;
         //ac_int<11, false> *temp_pointer_swap;
         ac_int<11, false> temp_pointer_swap;   //<----CHANGED
+
+        ac_int<32, false> score_j;
         sortPOPI: for (int i = 0; i < populationSize; i++){
             sortPOPJ: for (int j = i + 1; j < populationSize; j++){
-                if (scores[i] >= scores[j]){
+                score_j = scores[j];
+                if (scores[i] >= score_j){
                     // Sort Scores array
                     tempScore = scores[i];
-                    scores[i] = scores[j];
+                    scores[i] = score_j;        //<----OPTIMIZED
                     scores[j] = tempScore;
 
                     // Sort pointers based on scores array
