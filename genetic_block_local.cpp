@@ -150,13 +150,16 @@ private:
 
         ac_int<11, false> index_copy;
         ac_int<11, false> swapGenes;
+        ac_int<11, false> temp_i,temp_index;
         // Second Quarter of the population
         cross: for (int i = (max_pop_survivors); i < (max_pop_crossover); i++) {
             index_copy = i - max_pop_survivors;
+            temp_index = populationAddresses[index_copy];
+            temp_i = populationAddresses[i];
             // Copy the best genes
             copyBEST: for (int j = 0; j < numberOfNodes; ++j) {
-                //*(populationAddresses[i]+j) = *(populationAddresses[index_copy]+j);
-                 population[populationAddresses[i]][j] = population[populationAddresses[index_copy]][j];         //<----CHANGED
+                //*(populationAddresses[i]+j) = *(populationAddresses[index_copy]+j);                                                     + add add pop pop              |  + add pop add pop
+                 population[temp_i][j] = population[temp_index][j];                                                      //<----CHANGED          +  add add pop pop      |     +  add pop add pop
             }
 
             ac_int<7, false> point1;
