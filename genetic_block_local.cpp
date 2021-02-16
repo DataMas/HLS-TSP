@@ -40,7 +40,7 @@ public:
 #pragma hls_design top
 class genetic {
 private:
-    void populationInit(ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LFSR &RAND ) {
+    void populationInit(ac_int<11, false> population[populationSize][numberOfNodes], LFSR &RAND ) {
         // Initialize population chromosomes
 
         initPOP: for (int i = 0; i < populationSize; i++) {
@@ -88,12 +88,13 @@ private:
             }
 
             // Keep the address of each chromosome in an array of pointers
-            populationAddresses[i] = &population[i][0];
+            //populationAddresses[i] = &population[i][0];
+            populationAddresses[i] = population[i];     //<----CHANGED
         }
     }
 
 
-    void sortByColumn(ac_int<32, false> scores[populationSize], ac_int<11, false> *populationAddresses[populationSize], LFSR &RAND) {
+    void sortByColumn(ac_int<32, false> scores[populationSize], LFSR &RAND) {
         // Sort chromosomes based on their fitness Score
 
         ac_int<32, false> tempScore;
@@ -115,7 +116,7 @@ private:
         }
     }
 
-    void fitness(ac_int<32, false> scores[populationSize], ac_int<11, false> distances[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes], ac_int<11, false> *populationAddresses[populationSize], LFSR &RAND) {
+    void fitness(ac_int<32, false> scores[populationSize], ac_int<11, false> distances[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes], LFSR &RAND) {
             // Fitness function - Calculate generation's chromosome-scores
 
             ac_int<11, false> city1;
@@ -131,11 +132,11 @@ private:
                 }
             }
             // Sort chromosomes
-            sortByColumn(scores, populationAddresses, RAND);
+            sortByColumn(scores, RAND);
     }
 
     //#pragma_hls_design
-    void crossover(ac_int<11, false> *populationAddresses[populationSize], LFSR &RAND) {
+    void crossover( LFSR &RAND) {
         /*
          *  25% of population, survives as it is.
          *  25% of population, copies the 1st 25% and them gets crossover (random area flip)
@@ -240,6 +241,7 @@ private:
         }
     }
 
+    ac_int<11, false> *populationAddresses[populationSize];
 public:
     // Constructor
     genetic(){};
@@ -251,20 +253,18 @@ public:
         // Create random number generator
         LFSR RAND(12);
 
-        ac_int<11, false> *populationAddresses[populationSize];
-
         // Initialize population
-        populationInit(population, populationAddresses, RAND);
+        populationInit(population, RAND);
 
         int max = 1000000;
         ac_int<32, false> scores[populationSize];
         geneticGENERATIONS: for (int i = 0; i < maxGenerations; i++) {
-            fitness(scores, distance_matrix, population, populationAddresses, RAND);
+            fitness(scores, distance_matrix, population, RAND);
             if (scores[0] < max) {
                 max = scores[0];
                 cout << "Generation " << i << " - Best Score: " << scores[0] << endl;
             }
-            crossover(populationAddresses, RAND);
+            crossover( RAND);
             mutate(population, RAND);
         }
 //        fstream my_file;
