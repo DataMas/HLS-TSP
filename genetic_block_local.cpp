@@ -49,7 +49,6 @@ private:
             }
 
             ac_int<11, false> temp;
-
             // Shuffle
             ac_int<7, false> point1,point3,point5;
             ac_int<7, false> point2,point4,point6;
@@ -87,9 +86,8 @@ private:
                 population[i][point6] = temp;
             }
 
-            // Keep the address of each chromosome in an array of pointers
-            //populationAddresses[i] = &population[i][0];
-            populationAddresses[i] = i;     //<----CHANGED
+            // Keep the index of each chromosome
+            populationAddresses[i] = i;
         }
     }
 
@@ -98,10 +96,10 @@ private:
         // Sort chromosomes based on their fitness Score
 
         ac_int<32, false> tempScore;
-        //ac_int<11, false> *temp_pointer_swap;
-        ac_int<11, false> temp_pointer_swap;   //<----CHANGED
-
+        ac_int<11, false> index_swap;
+        // temp variables to avoid too many memory accesses
         ac_int<32, false> score_i,score_j;
+
         sortPOPI: for (int i = 0; i < populationSize; i++){
             sortPOPJ: for (int j = i + 1; j < populationSize; j++){
                 score_i = scores[i];
@@ -112,10 +110,10 @@ private:
                     scores[i] = score_j;        //<----OPTIMIZED
                     scores[j] = tempScore;
 
-                    // Sort pointers based on scores array
-                    temp_pointer_swap = populationAddresses[i];
+                    // Sort indexes based on scores array
+                    index_swap = populationAddresses[i];
                     populationAddresses[i] = populationAddresses[j];
-                    populationAddresses[j] = temp_pointer_swap;
+                    populationAddresses[j] = index_swap;
                 }
             }
         }
@@ -150,17 +148,17 @@ private:
 
         ac_int<11, false> index_copy;
         ac_int<11, false> swapGenes;
-        ac_int<11, false> temp_i,temp_index;
+        ac_int<11, false> popAddr_i,popAddr_copy;
         // Second Quarter of the population
         cross: for (int i = (max_pop_survivors); i < (max_pop_crossover); i++) {
             index_copy = i - max_pop_survivors;
-            temp_index = populationAddresses[index_copy];
-            temp_i = populationAddresses[i];
+            // Keep populationAddresses[i] and populationAddresses[index_copy] to reuse it in loop
+            popAddr_copy = populationAddresses[index_copy];
+            popAddr_i = populationAddresses[i];
             // Copy the best genes
             copyBEST: for (int j = 0; j < numberOfNodes; ++j) {
-                //*(populationAddresses[i]+j) = *(populationAddresses[index_copy]+j);                                                     + add add pop pop              |  + add pop add pop
-                 population[temp_i][j] = population[temp_index][j];                                                      //<----CHANGED          +  add add pop pop      |     +  add pop add pop
-            }
+                population[popAddr_i][j] = population[popAddr_copy][j];                                              //<----CHANGED      + add add pop pop        |  + add pop add pop
+            }                                                                                                       //                      +  add add pop pop    |     +  add pop add pop
 
             ac_int<7, false> point1;
             ac_int<7, false> point2;
@@ -186,12 +184,9 @@ private:
 
             crossoverSWAP: for (int j = point1; j < middle; ++j) {
                 ac_int<11, false> offset = size-j;
-//                swapGenes = *(populationAddresses[i]+j);
-//                *(populationAddresses[i]+j) = *(populationAddresses[i]+offset);
-//                *(populationAddresses[i]+offset) = swapGenes;
-                swapGenes = population[populationAddresses[i]][j];                    //<----CHANGED
-                population[populationAddresses[i]][j] = population[populationAddresses[i]][offset];
-                population[populationAddresses[i]][offset] = swapGenes;
+                swapGenes = population[popAddr_i][j];
+                population[popAddr_i][j] = population[popAddr_i][offset];
+                population[popAddr_i][offset] = swapGenes;
             }
         }
 
@@ -203,6 +198,8 @@ private:
             ac_int<7, false> point2;
             ac_int<32, false> randomNumber;
 
+            // Keep populationAddresses[i] to reuse it in loop
+            ac_int<11, false> popAddr_i = populationAddresses[i];
             for (int j = 0; j < totalSwaps; ++j) {
                 randomNumber = RAND.run();
                 // range 0 - 127
@@ -213,9 +210,9 @@ private:
 //                temp = *(populationAddresses[i]+point1);
 //                *(populationAddresses[i]+point1) = *(populationAddresses[i]+point2);
 //                *(populationAddresses[i]+point2) = temp;
-                temp = population[populationAddresses[i]][point1];                    //<----CHANGED
-                population[populationAddresses[i]][point1] = population[populationAddresses[i]][point2];
-                population[populationAddresses[i]][point2] = temp;
+                temp = population[popAddr_i][point1];                    //<----CHANGED
+                population[popAddr_i][point1] = population[popAddr_i][point2];
+                population[popAddr_i][point2] = temp;
             }
         }
     }
