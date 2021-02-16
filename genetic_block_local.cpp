@@ -101,13 +101,14 @@ private:
         //ac_int<11, false> *temp_pointer_swap;
         ac_int<11, false> temp_pointer_swap;   //<----CHANGED
 
-        ac_int<32, false> score_j;
+        ac_int<32, false> score_i,score_j;
         sortPOPI: for (int i = 0; i < populationSize; i++){
             sortPOPJ: for (int j = i + 1; j < populationSize; j++){
+                score_i = scores[i];
                 score_j = scores[j];
-                if (scores[i] >= score_j){
+                if (score_i >= score_j){
                     // Sort Scores array
-                    tempScore = scores[i];
+                    tempScore = score_i;
                     scores[i] = score_j;        //<----OPTIMIZED
                     scores[j] = tempScore;
 
