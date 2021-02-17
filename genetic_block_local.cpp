@@ -124,7 +124,7 @@ private:
 
             ac_int<11, false> city1;
             ac_int<11, false> city2;
-
+            ac_int<32, false> sum;
 //            // Calculate the sum of all the distances for a every chromosome
 //            fitPOP: for (int i = 0; i < populationSize; i++) {
 //                scores[i] = 0;
@@ -136,13 +136,14 @@ private:
 //            }
             // Calculate the sum of all the distances for a every chromosome
             fitPOP: for (int i = 0; i < populationSize; i++) {
-                scores[i] = 0;
+                sum = 0;
                 city1 = population[i][0];
                 fitNODES: for (int j = 1; j < numberOfNodes; j++) {
                     city2 = population[i][j];                           // <--OPTIMIZED
-                    scores[i] = scores[i] + distances[city1][city2];
+                    sum  = sum + distances[city1][city2];
                     city1 = city2;
                 }
+                scores[i] = sum;
             }
             // Sort chromosomes
             sortByColumn(scores, RAND);
