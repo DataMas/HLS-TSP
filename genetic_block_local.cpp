@@ -170,8 +170,8 @@ private:
             popAddr_i = populationAddresses[i];
             // Copy the best genes
             copyBEST: for (int j = 0; j < numberOfNodes; ++j) {
-                population[popAddr_i][j] = population[popAddr_copy][j];                                              //<----CHANGED      + addr addr pop  pop        |  + addr pop addr pop
-            }                                                                                                       //                      +   addr addr pop pop    |     +   addr pop addr pop
+                population[popAddr_i][j] = population[popAddr_copy][j];                                              //     + addr addr pop  pop        |  + addr pop addr pop
+            }                                                                                                       //         +   addr addr pop pop    |     +   addr pop addr pop
 
             ac_int<7, false> point1;
             ac_int<7, false> point2;
@@ -220,10 +220,7 @@ private:
                 point2 = randomNumber.slc<7>(16);
                 point1[0] = 1;  //force numbers to be >0
                 point2[0] = 1;
-//                temp = *(populationAddresses[i]+point1);
-//                *(populationAddresses[i]+point1) = *(populationAddresses[i]+point2);
-//                *(populationAddresses[i]+point2) = temp;
-                temp = population[popAddr_i][point1];                    //<----CHANGED
+                temp = population[popAddr_i][point1];
                 population[popAddr_i][point1] = population[popAddr_i][point2];
                 population[popAddr_i][point2] = temp;
             }
@@ -248,12 +245,6 @@ private:
             point2 = randomNumber.slc<7>(5);
             point1[0] = 1;  //force numbers to be >0
             point2[0] = 1;
-            if (point1>point2) {
-                point1 = randomNumber.slc<7>(5);
-                point2 = randomNumber.slc<7>(0);
-                point1[0] = 1;  //force numbers to be >0
-                point2[0] = 1;
-            }
 
             index = randomNumber.slc<9>(13); // 9 for 512
             // leave the best two chromosomes intact
