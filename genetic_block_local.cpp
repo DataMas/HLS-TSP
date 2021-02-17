@@ -136,6 +136,7 @@ private:
 //            }
             // Calculate the sum of all the distances for a every chromosome
             fitPOP: for (int i = 0; i < populationSize; i++) {
+                // use local sum variable to avoid accessing scores array many times
                 sum = 0;
                 city1 = population[i][0];
                 fitNODES: for (int j = 1; j < numberOfNodes; j++) {
@@ -160,10 +161,11 @@ private:
         ac_int<11, false> index_copy;
         ac_int<11, false> swapGenes;
         ac_int<11, false> popAddr_i,popAddr_copy;
+
         // Second Quarter of the population
         cross: for (int i = (max_pop_survivors); i < (max_pop_crossover); i++) {
             index_copy = i - max_pop_survivors;
-            // Keep populationAddresses[i] and populationAddresses[index_copy] to reuse it in loop
+            // Keep populationAddresses[i] and populationAddresses[index_copy] to reuse it in loop copyBEST
             popAddr_copy = populationAddresses[index_copy];
             popAddr_i = populationAddresses[i];
             // Copy the best genes
@@ -191,10 +193,12 @@ private:
             }
 
             size = point2 - point1;
-            middle = (point1 + size) / 2;
+            ac_int<11, false> total = point1 + point2;
+            middle = point1 + (size >> 1);   // Replaced /2 with right bit shift..Bitwise operations are faster
+            ac_int<11, false> offset;
 
             crossoverSWAP: for (int j = point1; j < middle; ++j) {
-                ac_int<11, false> offset = size-j;
+                offset = total - j;
                 swapGenes = population[popAddr_i][j];
                 population[popAddr_i][j] = population[popAddr_i][offset];
                 population[popAddr_i][offset] = swapGenes;
