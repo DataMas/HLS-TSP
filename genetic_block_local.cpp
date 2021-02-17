@@ -125,13 +125,23 @@ private:
             ac_int<11, false> city1;
             ac_int<11, false> city2;
 
+//            // Calculate the sum of all the distances for a every chromosome
+//            fitPOP: for (int i = 0; i < populationSize; i++) {
+//                scores[i] = 0;
+//                fitNODES: for (int j = 0; j < numberOfNodes - 1; j++) {
+//                    city1 = population[i][j];
+//                    city2 = population[i][j + 1];
+//                    scores[i] = scores[i] + distances[city1][city2];
+//                }
+//            }
             // Calculate the sum of all the distances for a every chromosome
             fitPOP: for (int i = 0; i < populationSize; i++) {
                 scores[i] = 0;
-                fitNODES: for (int j = 0; j < numberOfNodes - 1; j++) {
-                    city1 = population[i][j];
-                    city2 = population[i][j + 1];
+                city1 = population[i][0];
+                fitNODES: for (int j = 1; j < numberOfNodes; j++) {
+                    city2 = population[i][j];                           // <--OPTIMIZED
                     scores[i] = scores[i] + distances[city1][city2];
+                    city1 = city2;
                 }
             }
             // Sort chromosomes
@@ -157,8 +167,8 @@ private:
             popAddr_i = populationAddresses[i];
             // Copy the best genes
             copyBEST: for (int j = 0; j < numberOfNodes; ++j) {
-                population[popAddr_i][j] = population[popAddr_copy][j];                                              //<----CHANGED      + add add pop pop        |  + add pop add pop
-            }                                                                                                       //                      +  add add pop pop    |     +  add pop add pop
+                population[popAddr_i][j] = population[popAddr_copy][j];                                              //<----CHANGED      + addr addr pop  pop        |  + addr pop addr pop
+            }                                                                                                       //                      +   addr addr pop pop    |     +   addr pop addr pop
 
             ac_int<7, false> point1;
             ac_int<7, false> point2;
