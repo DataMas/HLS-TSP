@@ -175,8 +175,6 @@ private:
 
             ac_int<7, false> point1;
             ac_int<7, false> point2;
-            ac_int<7, false> size;
-            ac_int<7, false> middle;
             ac_int<32, false> randomNumber;
 
             randomNumber = RAND.run();
@@ -192,9 +190,9 @@ private:
                 point2[0]=1;
             }
 
-            size = point2 - point1;
+            ac_int<7, false> size = point2 - point1;
             ac_int<11, false> total = point1 + point2;
-            middle = point1 + (size >> 1);   // Replaced /2 with right bit shift..Bitwise operations are faster
+            ac_int<7, false> middle = point1 + (size >> 1);   // Replaced /2 with right bit shift..Bitwise operations are faster
             ac_int<11, false> offset;
 
             crossoverSWAP: for (int j = point1; j < middle; ++j) {
@@ -215,7 +213,7 @@ private:
 
             // Keep populationAddresses[i] to reuse it in loop
             ac_int<11, false> popAddr_i = populationAddresses[i];
-            for (int j = 0; j < totalSwaps; ++j) {
+            crossoverSHUFFLE: for (int j = 0; j < totalSwaps; ++j) {
                 randomNumber = RAND.run();
                 // range 0 - 127
                 point1 = randomNumber.slc<7>(2);
