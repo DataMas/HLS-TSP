@@ -11,7 +11,7 @@ using namespace std;
 static const int populationSize = 512;
 static const int numberOfNodes = 128;
 static const int totalSwaps = 2*numberOfNodes;
-static const int maxGenerations = 10000;
+static const int maxGenerations = 100000;
 static const int max_pop_survivors = populationSize*0.25;
 static const int max_pop_crossover = populationSize*0.5;
 
@@ -107,7 +107,7 @@ private:
                 if (score_i >= score_j){
                     // Sort Scores array
                     tempScore = score_i;
-                    scores[i] = score_j;        //<----OPTIMIZED
+                    scores[i] = score_j;
                     scores[j] = tempScore;
 
                     // Sort indexes based on scores array
@@ -132,7 +132,7 @@ private:
                 sum = 0;
                 city1 = population[i][0];
                 fitNODES: for (int j = 1; j < numberOfNodes; j++) {
-                    city2 = population[i][j];                           // <--OPTIMIZED
+                    city2 = population[i][j];
                     sum  = sum + distances[city1][city2];
                     city1 = city2;
                 }
@@ -162,8 +162,8 @@ private:
             popAddr_i = populationAddresses[i];
             // Copy the best genes
             copyBEST: for (int j = 0; j < numberOfNodes; ++j) {
-                population[popAddr_i][j] = population[popAddr_copy][j];                               //     + addr addr pop  pop        |  + addr pop addr pop
-            }                                                                                        //         +   addr addr pop pop    |     +   addr pop addr pop
+                population[popAddr_i][j] = population[popAddr_copy][j];
+            }
 
             ac_int<7, false> point1;
             ac_int<7, false> point2;
@@ -186,23 +186,21 @@ private:
             ac_int<11, false> total = point1 + point2;
             ac_int<7, false> middle = point1 + (size >> 1);   // Replaced /2 with right bit shift..Bitwise operations are faster
             ac_int<11, false> offset;
-
+            offset = total - point1;
             crossoverSWAP: for (int j = point1; j < middle; ++j) {
-                offset = total - j;
                 swapGenes = population[popAddr_i][j];
                 population[popAddr_i][j] = population[popAddr_i][offset];
                 population[popAddr_i][offset] = swapGenes;
+                offset --;
             }
         }
 
         // Regenerate last 50% of the population by random shuffling
         crossoverREG: for (int i = (max_pop_crossover); i < populationSize; i++) {
-
             ac_int<11, false> temp;
             ac_int<7, false> point1;
             ac_int<7, false> point2;
             ac_int<32, false> randomNumber;
-
             // Keep populationAddresses[i] to reuse it in loop
             ac_int<11, false> popAddr_i = populationAddresses[i];
             crossoverSHUFFLE: for (int j = 0; j < totalSwaps; ++j) {
@@ -258,7 +256,7 @@ public:
     void run (ac_int<11, false> distance_matrix[numberOfNodes][numberOfNodes], ac_int<11, false> population[populationSize][numberOfNodes]) {
 
         // Create random number generator
-        LFSR RAND(12);
+        LFSR RAND(28);
 
         // Initialize population
         populationInit(population, RAND);
