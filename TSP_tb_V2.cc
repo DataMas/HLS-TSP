@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "genetic_block_V4.h"
+#include "genetic_block.h"
 
 
 CCS_MAIN(int argc, char* argv[]) {
