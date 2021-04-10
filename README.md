@@ -2,7 +2,7 @@
 <br />
 <p align="center">
   <img src="https://github.com/DataMas/HLS_TSP/blob/hardware/images/file_icon.webp" alt="Logo" width="70" height="70">
-  <h3 align="center">Genetic Algorithm for TSP in HLS</h3>
+  <h3 align="center">High Level Synthesis - Solving TSP with Genetic Algorithm</h3>
 </p>
 
 
