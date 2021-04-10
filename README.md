@@ -18,7 +18,7 @@ The repository includes an implementation of Genetic Algorithm solving the Trave
 
 The project was implemented for the purposes of the Hardware Design for High Level Synthesis course of the 9th semester of DUTh.
 
-This repo contains 2 branches:
+This repository contains 2 branches:
 - *software*: Contains the developed C++ code that can be run locally in any IDE.
 - *hardware*: Contains the developed C++ code adjusted for Catapult HLS tool.
 
