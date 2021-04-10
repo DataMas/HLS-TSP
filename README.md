@@ -14,8 +14,8 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-The repository includes an implementation of genetic algorithm solving the Traveling Salesman Problem for High Level Synthesis
-The project was implemented for the purposes of the Hardware Design for High Level Sunthesis courseof the 9th semester of DUTh.
+The repository includes an implementation of Genetic Algorithm solving the Traveling Salesman Problem for High Level Synthesis
+The project was implemented for the purposes of the Hardware Design for High Level Synthesis course of the 9th semester of DUTh.
 
 <!-- CONTRIBUTING -->
 ## Contributing
